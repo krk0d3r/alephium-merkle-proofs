@@ -1,18 +1,59 @@
 {
-  "version": "v2.3.5",
+  "version": "v2.8.6",
   "name": "TokenFaucet",
-  "bytecode": "060609121b4024402d404a010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0302010000000102a0000201020101001116000e320c7bb4b11600aba00016002ba10005b416005f",
-  "codeHash": "3f02a0d23545568bc3face788c0202eda4244e2de567e8df482cb7f1ff611d52",
+  "bytecode": "070c09121b4024402d403c409040b040ba40c340ec40f6010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0302010000000102a001020000010100061600a10105a001b45f0000020601402e16014313202f136afa7b160117021600431703160313202e0c2f136af97b0c170416041603314c1016001604160413202a6217051605160200071702160413202a17044a2c160271a001712f02000002020110160071160171314c05160016014400084a04160116004400080200000103010316004f02010000000102a000020102030300191601160200080006031c0d7b16000e320c7bb4b11600aba00016002ba10006b416005f01000101000216000005",
+  "codeHash": "ee9d37b1e9216c628b355e413d7f53de4918b6bbbd5a5708dfaeb3d763f40797",
   "fieldsSig": {
-    "names": ["symbol", "name", "decimals", "supply", "balance", "__stdInterfaceId"],
-    "types": ["ByteVec", "ByteVec", "U256", "U256", "U256", "ByteVec"],
-    "isMutable": [false, false, false, false, true, false]
+    "names": [
+      "symbol",
+      "name",
+      "decimals",
+      "supply",
+      "balance",
+      "merkleRoot",
+      "__stdInterfaceId"
+    ],
+    "types": [
+      "ByteVec",
+      "ByteVec",
+      "U256",
+      "U256",
+      "U256",
+      "ByteVec",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
   },
   "eventsSig": [
     {
+      "name": "UpdateRoot",
+      "fieldNames": [
+        "newMerkleRoot",
+        "updatedBy"
+      ],
+      "fieldTypes": [
+        "ByteVec",
+        "Address"
+      ]
+    },
+    {
       "name": "Withdraw",
-      "fieldNames": ["to", "amount"],
-      "fieldTypes": ["Address", "U256"]
+      "fieldNames": [
+        "to",
+        "amount"
+      ],
+      "fieldTypes": [
+        "Address",
+        "U256"
+      ]
     }
   ],
   "functions": [
@@ -24,7 +65,9 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": ["ByteVec"]
+      "returnTypes": [
+        "ByteVec"
+      ]
     },
     {
       "name": "getName",
@@ -34,7 +77,9 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": ["ByteVec"]
+      "returnTypes": [
+        "ByteVec"
+      ]
     },
     {
       "name": "getDecimals",
@@ -44,7 +89,9 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": ["U256"]
+      "returnTypes": [
+        "U256"
+      ]
     },
     {
       "name": "getTotalSupply",
@@ -54,7 +101,97 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": ["U256"]
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getMerkleRoot",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "updateRoot",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": false,
+      "paramNames": [
+        "newMerkleRoot"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "verify",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": false,
+      "paramNames": [
+        "proof",
+        "data"
+      ],
+      "paramTypes": [
+        "ByteVec",
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "Bool"
+      ]
+    },
+    {
+      "name": "hashPair",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": false,
+      "paramNames": [
+        "a",
+        "b"
+      ],
+      "paramTypes": [
+        "ByteVec",
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "hash",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": false,
+      "paramNames": [
+        "dataToHash"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "ByteVec"
+      ]
     },
     {
       "name": "balance",
@@ -64,16 +201,46 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": ["U256"]
+      "returnTypes": [
+        "U256"
+      ]
     },
     {
       "name": "withdraw",
       "usePreapprovedAssets": false,
       "useAssetsInContract": true,
       "isPublic": true,
-      "paramNames": ["amount"],
-      "paramTypes": ["U256"],
-      "paramIsMutable": [false],
+      "paramNames": [
+        "amount",
+        "proof",
+        "data"
+      ],
+      "paramTypes": [
+        "U256",
+        "ByteVec",
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "updateMerkleRoot",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "newMerkleRoot"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
       "returnTypes": []
     }
   ],
@@ -87,6 +254,32 @@
           "value": {
             "type": "U256",
             "value": "0"
+          }
+        },
+        {
+          "name": "InvalidProof",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MerkleProofErrorCodes",
+      "fields": [
+        {
+          "name": "InvalidProofSize",
+          "value": {
+            "type": "U256",
+            "value": "11001"
+          }
+        },
+        {
+          "name": "InvalidDataHash",
+          "value": {
+            "type": "U256",
+            "value": "11002"
           }
         }
       ]

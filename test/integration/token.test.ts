@@ -35,7 +35,7 @@ describe('integration tests', () => {
       // Call `withdraw` function 10 times
       for (let i = 0; i < 10; i++) {
         await Withdraw.execute(signer, {
-          initialFields: { token: tokenId, amount: 1n },
+          initialFields: { token: tokenId, amount: 1n, proof: "0004b9095e1e09add85f6cda927371ec6e4f48b8cba05c479a7c2df8c5ccaebb954c2d9d79859ea5d67bad7136e4dcda11718eb6cedcecb67c3f3da6456a39d0",  data: Buffer.from("15jjExDyS8q3Wqk9v29PCQ21jDqubDrD8WQdgn6VW2oi4").toString("hex") },
           attoAlphAmount: DUST_AMOUNT * 2n
         })
 

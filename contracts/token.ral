@@ -10,8 +10,9 @@ Contract TokenFaucet(
     name: ByteVec,
     decimals: U256,
     supply: U256,
-    mut balance: U256
-) implements IFungibleToken {
+    mut balance: U256,
+    mut merkleRoot: ByteVec
+)  extends MerkleProof(merkleRoot) implements IFungibleToken {
 
     // Events allow for logging of activities on the blockchain.
     // Alephium clients can listen to events in order to react to contract state changes.
@@ -19,6 +20,7 @@ Contract TokenFaucet(
 
     enum ErrorCodes {
         InvalidWithdrawAmount = 0
+        InvalidProof = 1
     }
 
     // A public function that returns the initial supply of the contract's token.
@@ -52,9 +54,16 @@ Contract TokenFaucet(
     // The function is annotated as using contract assets as it does.
     // The function is annotated with `checkExternalCaller = false` as there is no need to check the external caller.
     @using(assetsInContract = true, updateFields = true, checkExternalCaller = false)
-    pub fn withdraw(amount: U256) -> () {
+    pub fn withdraw(amount: U256, proof: ByteVec, data: ByteVec) -> () {
         // Debug events can be helpful for error analysis
         emit Debug(`The current balance is ${balance}`)
+
+
+        // Verification added to check if the data matches the proof and root of tree
+        // In the current implementation this is not a secure way to do it, 
+        // you should include something like callerAddress!() check against the data or build the data on demand
+        assert!(verify(proof,hash(data)) == true, ErrorCodes.InvalidProof)
+
 
         // Make sure the amount is valid
         assert!(amount <= 2, ErrorCodes.InvalidWithdrawAmount)
@@ -65,5 +74,10 @@ Contract TokenFaucet(
 
         // Emit the event defined earlier.
         emit Withdraw(callerAddress!(), amount)
+    }
+
+    // Update should be secured to owner in real scenario or disabled
+    pub fn updateMerkleRoot(newMerkleRoot: ByteVec) -> () {
+        updateRoot(newMerkleRoot)
     }
 }

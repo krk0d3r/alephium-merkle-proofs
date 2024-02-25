@@ -19,7 +19,8 @@ const deployFaucet: DeployFunction<Settings> = async (
       name: Buffer.from('TokenFaucet', 'utf8').toString('hex'),
       decimals: 0n,
       supply: issueTokenAmount,
-      balance: issueTokenAmount
+      balance: issueTokenAmount,
+      merkleRoot: 'ef004695e7f3e4f8fc333fdf3d3682d6394f9671fe1021bc96fc06d050b87338'
     }
   })
   console.log('Token faucet contract id: ' + result.contractInstance.contractId)

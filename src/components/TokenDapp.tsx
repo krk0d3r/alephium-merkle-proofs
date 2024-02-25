@@ -4,21 +4,26 @@ import styles from '../styles/Home.module.css'
 import { withdrawToken } from '@/services/token.service'
 import { TxStatus } from './TxStatus'
 import { useWallet } from '@alephium/web3-react'
-import { node } from '@alephium/web3'
+import { node, web3 } from '@alephium/web3'
 import { TokenFaucetConfig } from '@/services/utils'
 
 export const TokenDapp: FC<{
   config: TokenFaucetConfig
 }> = ({ config }) => {
-  const { signer, account } = useWallet()
+  const { signer, account, nodeProvider } = useWallet()
+  if (nodeProvider) {
+    web3.setCurrentNodeProvider(nodeProvider)
+  }
   const addressGroup = config.groupIndex
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [ongoingTxId, setOngoingTxId] = useState<string>()
+  const [proofInputValue, setProofInputValue] = useState<string>('');
+
 
   const handleWithdrawSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (signer) {
-      const result = await withdrawToken(signer, withdrawAmount, config.faucetTokenId)
+      const result = await withdrawToken(signer, withdrawAmount, config.faucetTokenId, proofInputValue, Buffer.from((await signer.getSelectedAccount()).address, 'utf-8').toString('hex'))
       setOngoingTxId(result.txId)
     }
   }
@@ -68,6 +73,15 @@ export const TokenDapp: FC<{
               min="1"
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
+            />
+            <br />
+            <label htmlFor="withdraw-amount">Proof</label>
+            <input
+              type="string"
+              id="proof"
+              name="proof"
+              value={proofInputValue}
+              onChange={(e) => setProofInputValue(e.target.value)}
             />
             <br />
             <input type="submit" disabled={!!ongoingTxId} value="Send Me Token" />

@@ -9,11 +9,18 @@ import {
   ExecuteScriptResult,
   Script,
   SignerProvider,
-  HexString
-} from '@alephium/web3'
-import { default as WithdrawScriptJson } from '../Withdraw.ral.json'
+  HexString,
+} from "@alephium/web3";
+import { default as UpdateScriptJson } from "../scripts/Update.ral.json";
+import { default as WithdrawScriptJson } from "../scripts/Withdraw.ral.json";
 
+export const Update = new ExecutableScript<{
+  token: HexString;
+  newMerkleRoot: HexString;
+}>(Script.fromJson(UpdateScriptJson));
 export const Withdraw = new ExecutableScript<{
-  token: HexString
-  amount: bigint
-}>(Script.fromJson(WithdrawScriptJson))
+  token: HexString;
+  amount: bigint;
+  proof: HexString;
+  data: HexString;
+}>(Script.fromJson(WithdrawScriptJson));

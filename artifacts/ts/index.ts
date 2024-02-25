@@ -2,5 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export * from './TokenFaucet'
-export * from './scripts'
+export * from "./TokenFaucet";
+export * from "./scripts";

@@ -22,156 +22,322 @@ import {
   multicallMethods,
   fetchContractState,
   ContractInstance,
-  getContractEventsCurrentCount
-} from '@alephium/web3'
-import { default as TokenFaucetContractJson } from '../TokenFaucet.ral.json'
-import { getContractByCodeHash } from './contracts'
+  getContractEventsCurrentCount,
+} from "@alephium/web3";
+import { default as TokenFaucetContractJson } from "../TokenFaucet.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace TokenFaucetTypes {
   export type Fields = {
-    symbol: HexString
-    name: HexString
-    decimals: bigint
-    supply: bigint
-    balance: bigint
-  }
+    symbol: HexString;
+    name: HexString;
+    decimals: bigint;
+    supply: bigint;
+    balance: bigint;
+    merkleRoot: HexString;
+  };
 
-  export type State = ContractState<Fields>
+  export type State = ContractState<Fields>;
 
-  export type WithdrawEvent = ContractEvent<{ to: Address; amount: bigint }>
+  export type UpdateRootEvent = ContractEvent<{
+    newMerkleRoot: HexString;
+    updatedBy: Address;
+  }>;
+  export type WithdrawEvent = ContractEvent<{ to: Address; amount: bigint }>;
 
   export interface CallMethodTable {
     getSymbol: {
-      params: Omit<CallContractParams<{}>, 'args'>
-      result: CallContractResult<HexString>
-    }
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
     getName: {
-      params: Omit<CallContractParams<{}>, 'args'>
-      result: CallContractResult<HexString>
-    }
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
     getDecimals: {
-      params: Omit<CallContractParams<{}>, 'args'>
-      result: CallContractResult<bigint>
-    }
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
     getTotalSupply: {
-      params: Omit<CallContractParams<{}>, 'args'>
-      result: CallContractResult<bigint>
-    }
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getMerkleRoot: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
     balance: {
-      params: Omit<CallContractParams<{}>, 'args'>
-      result: CallContractResult<bigint>
-    }
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
   }
-  export type CallMethodParams<T extends keyof CallMethodTable> = CallMethodTable[T]['params']
-  export type CallMethodResult<T extends keyof CallMethodTable> = CallMethodTable[T]['result']
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
   export type MultiCallParams = Partial<{
-    [Name in keyof CallMethodTable]: CallMethodTable[Name]['params']
-  }>
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
   export type MultiCallResults<T extends MultiCallParams> = {
-    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable ? CallMethodTable[MaybeName]['result'] : undefined
-  }
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
 }
 
-class Factory extends ContractFactory<TokenFaucetInstance, TokenFaucetTypes.Fields> {
-  eventIndex = { Withdraw: 0 }
-  consts = { ErrorCodes: { InvalidWithdrawAmount: BigInt(0) } }
+class Factory extends ContractFactory<
+  TokenFaucetInstance,
+  TokenFaucetTypes.Fields
+> {
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as TokenFaucetTypes.Fields;
+  }
+
+  eventIndex = { UpdateRoot: 0, Withdraw: 1 };
+  consts = {
+    ErrorCodes: { InvalidWithdrawAmount: BigInt(0), InvalidProof: BigInt(1) },
+    MerkleProofErrorCodes: {
+      InvalidProofSize: BigInt(11001),
+      InvalidDataHash: BigInt(11002),
+    },
+  };
 
   at(address: string): TokenFaucetInstance {
-    return new TokenFaucetInstance(address)
+    return new TokenFaucetInstance(address);
   }
 
   tests = {
     getSymbol: async (
-      params: Omit<TestContractParams<TokenFaucetTypes.Fields, never>, 'testArgs'>
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
-      return testMethod(this, 'getSymbol', params)
+      return testMethod(this, "getSymbol", params);
     },
     getName: async (
-      params: Omit<TestContractParams<TokenFaucetTypes.Fields, never>, 'testArgs'>
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
-      return testMethod(this, 'getName', params)
+      return testMethod(this, "getName", params);
     },
     getDecimals: async (
-      params: Omit<TestContractParams<TokenFaucetTypes.Fields, never>, 'testArgs'>
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<bigint>> => {
-      return testMethod(this, 'getDecimals', params)
+      return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
-      params: Omit<TestContractParams<TokenFaucetTypes.Fields, never>, 'testArgs'>
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<bigint>> => {
-      return testMethod(this, 'getTotalSupply', params)
+      return testMethod(this, "getTotalSupply", params);
+    },
+    getMerkleRoot: async (
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getMerkleRoot", params);
+    },
+    updateRoot: async (
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { newMerkleRoot: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "updateRoot", params);
+    },
+    verify: async (
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { proof: HexString; data: HexString }
+      >
+    ): Promise<TestContractResult<boolean>> => {
+      return testMethod(this, "verify", params);
+    },
+    hashPair: async (
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { a: HexString; b: HexString }
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "hashPair", params);
+    },
+    hash: async (
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { dataToHash: HexString }
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "hash", params);
     },
     balance: async (
-      params: Omit<TestContractParams<TokenFaucetTypes.Fields, never>, 'testArgs'>
+      params: Omit<
+        TestContractParams<TokenFaucetTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<bigint>> => {
-      return testMethod(this, 'balance', params)
+      return testMethod(this, "balance", params);
     },
     withdraw: async (
-      params: TestContractParams<TokenFaucetTypes.Fields, { amount: bigint }>
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { amount: bigint; proof: HexString; data: HexString }
+      >
     ): Promise<TestContractResult<null>> => {
-      return testMethod(this, 'withdraw', params)
-    }
-  }
+      return testMethod(this, "withdraw", params);
+    },
+    updateMerkleRoot: async (
+      params: TestContractParams<
+        TokenFaucetTypes.Fields,
+        { newMerkleRoot: HexString }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "updateMerkleRoot", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract
 export const TokenFaucet = new Factory(
   Contract.fromJson(
     TokenFaucetContractJson,
-    '=20-2+67=101+3a0007e02=1+75468652063757272656e742062616c616e63652069732000=46',
-    'a3309aa3a0dbd0c53b67a0c422316dcbc0571d8fa5f9ea2ab374b5c110f4efe2'
+    "=39+1=1-2+9=1-3+113=401+ba0007e02175468652063757272656e742062616c616e6365206=1+732000=90",
+    "6d3c579d92428278f48017be39bba24ad78b4f9eafb01ebe9af6f45cc59edcbf"
   )
-)
+);
 
 // Use this class to interact with the blockchain
 export class TokenFaucetInstance extends ContractInstance {
   constructor(address: Address) {
-    super(address)
+    super(address);
   }
 
   async fetchState(): Promise<TokenFaucetTypes.State> {
-    return fetchContractState(TokenFaucet, this)
+    return fetchContractState(TokenFaucet, this);
   }
 
   async getContractEventsCurrentCount(): Promise<number> {
-    return getContractEventsCurrentCount(this.address)
+    return getContractEventsCurrentCount(this.address);
+  }
+
+  subscribeUpdateRootEvent(
+    options: EventSubscribeOptions<TokenFaucetTypes.UpdateRootEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      TokenFaucet.contract,
+      this,
+      options,
+      "UpdateRoot",
+      fromCount
+    );
   }
 
   subscribeWithdrawEvent(
     options: EventSubscribeOptions<TokenFaucetTypes.WithdrawEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeContractEvent(TokenFaucet.contract, this, options, 'Withdraw', fromCount)
+    return subscribeContractEvent(
+      TokenFaucet.contract,
+      this,
+      options,
+      "Withdraw",
+      fromCount
+    );
+  }
+
+  subscribeAllEvents(
+    options: EventSubscribeOptions<
+      TokenFaucetTypes.UpdateRootEvent | TokenFaucetTypes.WithdrawEvent
+    >,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvents(
+      TokenFaucet.contract,
+      this,
+      options,
+      fromCount
+    );
   }
 
   methods = {
     getSymbol: async (
-      params?: TokenFaucetTypes.CallMethodParams<'getSymbol'>
-    ): Promise<TokenFaucetTypes.CallMethodResult<'getSymbol'>> => {
-      return callMethod(TokenFaucet, this, 'getSymbol', params === undefined ? {} : params, getContractByCodeHash)
+      params?: TokenFaucetTypes.CallMethodParams<"getSymbol">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"getSymbol">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "getSymbol",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     getName: async (
-      params?: TokenFaucetTypes.CallMethodParams<'getName'>
-    ): Promise<TokenFaucetTypes.CallMethodResult<'getName'>> => {
-      return callMethod(TokenFaucet, this, 'getName', params === undefined ? {} : params, getContractByCodeHash)
+      params?: TokenFaucetTypes.CallMethodParams<"getName">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"getName">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "getName",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     getDecimals: async (
-      params?: TokenFaucetTypes.CallMethodParams<'getDecimals'>
-    ): Promise<TokenFaucetTypes.CallMethodResult<'getDecimals'>> => {
-      return callMethod(TokenFaucet, this, 'getDecimals', params === undefined ? {} : params, getContractByCodeHash)
+      params?: TokenFaucetTypes.CallMethodParams<"getDecimals">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"getDecimals">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "getDecimals",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     getTotalSupply: async (
-      params?: TokenFaucetTypes.CallMethodParams<'getTotalSupply'>
-    ): Promise<TokenFaucetTypes.CallMethodResult<'getTotalSupply'>> => {
-      return callMethod(TokenFaucet, this, 'getTotalSupply', params === undefined ? {} : params, getContractByCodeHash)
+      params?: TokenFaucetTypes.CallMethodParams<"getTotalSupply">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"getTotalSupply">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "getTotalSupply",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getMerkleRoot: async (
+      params?: TokenFaucetTypes.CallMethodParams<"getMerkleRoot">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"getMerkleRoot">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "getMerkleRoot",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     balance: async (
-      params?: TokenFaucetTypes.CallMethodParams<'balance'>
-    ): Promise<TokenFaucetTypes.CallMethodResult<'balance'>> => {
-      return callMethod(TokenFaucet, this, 'balance', params === undefined ? {} : params, getContractByCodeHash)
-    }
-  }
+      params?: TokenFaucetTypes.CallMethodParams<"balance">
+    ): Promise<TokenFaucetTypes.CallMethodResult<"balance">> => {
+      return callMethod(
+        TokenFaucet,
+        this,
+        "balance",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
 
   async multicall<Calls extends TokenFaucetTypes.MultiCallParams>(
     calls: Calls
@@ -181,6 +347,6 @@ export class TokenFaucetInstance extends ContractInstance {
       this,
       calls,
       getContractByCodeHash
-    )) as TokenFaucetTypes.MultiCallResults<Calls>
+    )) as TokenFaucetTypes.MultiCallResults<Calls>;
   }
 }

@@ -1,23 +1,17 @@
 {
   "version": "v2.8.6",
-  "name": "Withdraw",
-  "bytecodeTemplate": "01010300000007{1}{2}{3}0f0c{0}010a",
+  "name": "Update",
+  "bytecodeTemplate": "01010300000005{1}0d0c{0}010b",
   "fieldsSig": {
     "names": [
       "token",
-      "amount",
-      "proof",
-      "data"
+      "newMerkleRoot"
     ],
     "types": [
-      "ByteVec",
-      "U256",
       "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
-      false,
-      false,
       false,
       false
     ]

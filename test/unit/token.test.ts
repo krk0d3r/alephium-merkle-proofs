@@ -1,4 +1,4 @@
-import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT } from '@alephium/web3'
+import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT, HexString } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress } from '@alephium/web3-test'
 import { TokenFaucet, TokenFaucetTypes } from '../../artifacts/ts'
 
@@ -6,7 +6,11 @@ describe('unit tests', () => {
   let testContractId: string
   let testTokenId: string
   let testContractAddress: string
-  let testParamsFixture: TestContractParams<TokenFaucetTypes.Fields, { amount: bigint }>
+  let testParamsFixture: TestContractParams<TokenFaucetTypes.Fields, { 
+    amount: bigint 
+    proof: HexString
+    data: HexString
+  }>
 
   // We initialize the fixture variables before all tests
   beforeAll(async () => {
@@ -15,6 +19,7 @@ describe('unit tests', () => {
     testContractId = randomContractId()
     testTokenId = testContractId
     testContractAddress = addressFromContractId(testContractId)
+    const merkleRoot = "be0f3378df8fefe54ecb07556fea821ed68fe43cfb94e2649ed5120fc4a0fa6a"
     testParamsFixture = {
       // a random address that the test contract resides in the tests
       address: testContractAddress,
@@ -26,10 +31,11 @@ describe('unit tests', () => {
         name: Buffer.from('TokenFaucet', 'utf8').toString('hex'),
         decimals: 18n,
         supply: 10n ** 18n,
-        balance: 10n
+        balance: 10n,
+        merkleRoot: merkleRoot
       },
       // arguments to test the target function of the test contract
-      testArgs: { amount: 1n },
+      testArgs: { amount: 1n, proof: "1f675bff07515f5df96737194ea945c36c41e7b4fcef307b7cd4d0e602a69111e62e1dfc08d58fd144947903447473a090c958fe34e2425d578237fcdf1ab5a4434b529473163ef4ed9c9341d9b7250ab9183c27e7add004c3bba38c56274e24", data: Buffer.from('A').toString("hex") },
       // assets owned by the caller of the function
       inputAssets: [{ address: testAddress, asset: { alphAmount: 10n ** 18n } }]
     }
@@ -94,7 +100,7 @@ describe('unit tests', () => {
   })
 
   it('test withdraw', async () => {
-    const testParams = { ...testParamsFixture, testArgs: { amount: 3n } }
+    const testParams = { ...testParamsFixture, testArgs: { amount: 3n,  proof: "1f675bff07515f5df96737194ea945c36c41e7b4fcef307b7cd4d0e602a69111e62e1dfc08d58fd144947903447473a090c958fe34e2425d578237fcdf1ab5a4434b529473163ef4ed9c9341d9b7250ab9183c27e7add004c3bba38c56274e24", data: Buffer.from("A").toString("hex") } }
     // test that assertion failed in the withdraw function
     await expectAssertionError(TokenFaucet.tests.withdraw(testParams), testContractAddress, 0)
   })

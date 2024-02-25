@@ -1,71 +1,54 @@
-This is a Alephium template project for the
-[Next.js](https://nextjs.org/) framework, it is bootstrapped with the
-following command:
+# Merkle Tree Library for Blockchain and dApp Development
 
-```
-npx @alephium/cli init $project-name --template nextjs
-```
+## Project Overview
 
-This template project demonstrates how to implement a simple token
-faucet and expose it with a Web UI using Next.js.
+This project focuses on the development of a library-type contract for Merkle trees, a critical component in blockchain and decentralized application (dApp) development. Building on top of the default Alephium token faucet demo, this implementation not only demonstrates the standard functionality of Merkle trees but also extends it to provide a faucet functionality for whitelisted addresses. This serves as a practical demonstration of Merkle proofs in action. The goal was to create a solution akin to OpenZeppelin's Ethereum library, aiming for a standardized and reliable implementation of Merkle proofs.
 
-## Getting Started
+## Key Components
 
-### Install
+1. **Merkle Proof Contract**: 
+   - Developed a core contract that abstracts the verification of Merkle proofs. 
+   - Designed to be inheritable, allowing other contracts to leverage its functionality effectively.
+   - Key functionalities include updating the Merkle root and verifying Merkle proofs against this root.
 
-```
-npm install
-```
+2. **Demo dApp & Contract**:
+   - Created a demonstration decentralized application showcasing the use of the Merkle tree library.
+   - The dApp leverages the Alephium token faucet demo to provide faucet functionality to whitelisted addresses.
+   - Included a sample contract illustrating practical applications of the library in a blockchain context.
 
-### Start a local devnet for testing and development
+4. **Interactive Frontend**:
+   - Developed a user-friendly frontend interface.
+   - Facilitates user interaction for inputting data and generating Merkle trees and proofs.
+   - Demonstrates the library's functionality in a real-world scenario, enhancing understanding and usability.
+   - The application efficiently computes the Merkle root and corresponding proofs for given data sets.
 
-```
-npx @alephium/cli@latest devnet start
-```
+## Technical Implementation
 
-### Deploy the token faucet contract
+- **Merkle Tree Generation**:
+  - The core algorithm efficiently constructs Merkle trees from input data.
+  - Handles both balanced and unbalanced trees, ensuring functionality across various data sets.
 
-```bash
-# In this case devnet
-npx @alephium/cli deploy -n devnet
-```
+- **Verification Mechanism**:
+  - Implemented a robust mechanism to verify data against the Merkle root.
+  - Ensures the integrity and validity of data without the need for the complete dataset.
 
-This will compile and deploy the token faucet contracts to all of the
-4 groups on devnet.
+- **React.js Frontend**:
+  - Utilized React.js to build an interactive frontend.
+  - Features include dynamic input for tree elements and real-time visualization of Merkle roots and proofs.
 
-Before deployment, you might want to just compile and test the
-contracts first:
+- **Async Operations and Error Handling**:
+  - Integrated asynchronous operations for handling data fetches and computations.
+  - Comprehensive error handling to ensure reliability and robustness.
 
-```bash
-# Compile
-npx @alephium/cli compile
+## Usage and Demo
 
-# Test
-npx @alephium/cli test
-```
+- The project includes a detailed demonstration, highlighting the functionality of the Merkle tree library in various scenarios.
+- Users can interact with the frontend to create Merkle trees from custom input and view the generated Merkle root and proofs.
 
-### Run the development server
+## Conclusion
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+This project successfully delivers a versatile Merkle tree library, valuable for blockchain and dApp developers. It demonstrates the practical application of Merkle proofs in blockchain scenarios, such as a token faucet for whitelisted addresses, underscoring the project's commitment to creating reliable, standardized solutions for complex cryptographic operations in the blockchain domain.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser
-to see the token faucet application.
-
-Download the [Alephium Extension Wallet](https://github.com/alephium/extension-wallet)
-to interact with the application.
-
-## Learn More
-
-To learn more about smart contract development on Alephium, take a
-look at the following resources:
-
-- [Alephium Web3 SDK Guide](https://docs.alephium.org/dapps/alephium-web3/) - Learn about Alephium Web3 SDK
-- [Ralph Language](https://docs.alephium.org/ralph/getting-started) - A guide to the Ralph programming language
-
-You can check out the [Alephium GitHub
-repositories](https://github.com/alephium) for more information - your
-feedback and contributions are welcome!
+## References
+- OpenZeppelin's Ethereum library: [MerkleProof.sol](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol)
+- Alephium token faucet [alephium-nextjs-tutorial](https://docs.alephium.org/dapps/build-dapp-with-nextjs)
